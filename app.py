@@ -4,9 +4,11 @@ from wtforms import Form, TextField, PasswordField, validators
 from passlib.hash import sha256_crypt
 from functools import wraps
 from config import *
+import boto3
 import gc
 import sys
 import logging
+import os
 
 logging.basicConfig(level=logging.DEBUG)
 app = Flask(__name__)
@@ -63,9 +65,6 @@ def register():
                 db.commit()
                 cursor.close()
                 gc.collect()
-                # session['logged_in'] = True
-                # session['username'] = usr_name
-                # return redirect('/')
                 flash("You have successfully registered your account")
                 return redirect('/login')
         return render_template('register.html', form=form)
@@ -106,6 +105,7 @@ def login_page():
                 session['logged_in'] = True
                 session['username'] = username
                 session['fname'] = data[4]
+                session['user_id'] = data[0]
                 flash("You are now logged in")
                 return redirect('/dashboard')
             else:
@@ -123,7 +123,15 @@ def dashboard():
     if "username" and "fname" in session:
         username = session['username']
         fname = session['fname']
-        return render_template('/dashboard.html', username=username, name=fname)
+        user_id = session['user_id']
+        #Query: Select all files uploaded by the user
+        cursor = db.cursor()
+        data   = cursor.execute("SELECT * FROM File_name WHERE id = (%s)", (user_id))
+        data   = cursor.fetchall()
+        cursor.close()
+        # file_name = data[1]
+        # app.logger.info(file_name)
+        return render_template('/dashboard.html', username=username, name=fname, file_name=data)
     else:
         return render_template('/login')
 
@@ -154,6 +162,35 @@ def change_password(username):
     except Exception as e:
         error = str(e)
         return render_template('change_password.html', error=error, username=username)
+
+@app.route('/dashboard/upload', methods = ['GET', 'POST'])
+@login_required
+def upload():
+    error = ""
+    try:
+        if request.method == 'POST':
+            file = request.files['file_to_upload']
+            if file.filename == "":
+                error = "A file is not selected. Please select a file to upload"
+            else:
+                file_name = file.filename
+                app.logger.info(file_name)
+                s3 = boto3.resource('s3')
+                s3.Bucket(bucketname).put_object(Key=file_name, Body=file)
+                #Getting user id to add the file name to table File_name
+                user_id   = session['user_id']
+                #Adding user id + file name to the table File_name
+                cursor = db.cursor()
+                data   = cursor.execute("INSERT INTO File_name VALUES (%s, %s)", (user_id,file_name))
+                db.commit()
+                cursor.close()
+                gc.collect()
+                return redirect('/dashboard')
+        return render_template('upload.html', error=error)
+    except Exception as e:
+        error = str(e)
+        return render_template('upload.html', error=error)
+
 
 
 
