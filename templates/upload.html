@@ -1,0 +1,14 @@
+{% extends 'dashboard_base.html' %}
+
+{% block head %}
+  <title>Upload a file</title>
+{% endblock %}
+
+{% block body %}
+<form class="form-signin" action="/dashboard/upload" enctype="multipart/form-data" method="POST">
+  <label for="formFileLg" class="form-label">Upload a file</label>
+  <input class="form-control form-control-lg" id="file_to_upload" name="file_to_upload" type="file" />
+  <br>
+  <button class="btn btn-lg btn-primary btn-block" type="submit">Upload</button>
+</form>
+{% endblock %}
