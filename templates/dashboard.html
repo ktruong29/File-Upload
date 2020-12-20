@@ -1,5 +1,15 @@
 {% extends 'dashboard_base.html' %}
 {% block body %}
-<h2>Section title</h2>
-<p>hello this is {{name}} and my username is {{username}}</p>
+<h1 class="text-primary">Files uploaded</h1>
+<br>
+<hr>
+
+{% for filename in file_name %}
+  <br>
+  <div class="p-3 mb-2 bg-success text-white">
+    <h4>{{ filename[1] }}</h4>
+  </div>
+  <br>
+  <hr>
+{% endfor %}
 {% endblock %}
