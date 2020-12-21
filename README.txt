@@ -23,7 +23,7 @@ and viewing all the uploaded files.
   - Install important dependencies
     o- Enter this command on the terminal to download packages
       o-- $sh pkgs.sh OR $./pkgs.sh
-  - Change the values in config.py corresponding do your current end-point addresses/values
+  - Change the values in config.py corresponding to your current end-point addresses/values
 
 ********************************************************************************
                               PROGRAM EXECUTION
